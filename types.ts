@@ -22,8 +22,8 @@ export enum AlertLevel {
 }
 
 export enum UserRole {
-  ADMIN = 'Admin',
-  SUB_ACCOUNT = 'Sub-Account'
+  ADMIN = 'admin',
+  SUB_ACCOUNT = 'staff'
 }
 
 export interface UserAccount {
@@ -34,7 +34,7 @@ export interface UserAccount {
   role: UserRole;
   isTrial: boolean;
   createdAt: string;
-  status?: 'Active' | 'Suspended';
+  status?: 'active' | 'suspended';
   permissions: string[];
 }
 
@@ -57,22 +57,22 @@ export interface BookingTask {
   itineraryId: string;
   type: ResourceType;
   description: string;
-  date: string; // Start Date
-  endDate?: string; // End Date
-  time?: string; // Start Time
-  endTime?: string; // End Time
+  date: string;
+  endDate?: string;
+  time?: string;
+  endTime?: string;
   status: TaskStatus;
   latestBookingDate: string;
   cost?: number;
   confirmationNo?: string;
-  resourceId?: string; // Links to library if matched
+  resourceId?: string;
   isResourceMatched: boolean;
   notes?: string;
 }
 
 export interface Itinerary {
   id: string;
-  ownerId: string; // ID of the sub-account who owns this
+  ownerId: string;
   groupName: string;
   startDate: string;
   endDate: string;
@@ -80,14 +80,5 @@ export interface Itinerary {
   guideLanguage: string;
   tasks: BookingTask[];
   status: 'Draft' | 'Operational' | 'Completed';
-  income?: number; // Total income from the group
-}
-
-export interface Alert {
-  id: string;
-  itineraryId: string;
-  taskId: string;
-  message: string;
-  level: AlertLevel;
-  createdAt: string;
+  income?: number;
 }
