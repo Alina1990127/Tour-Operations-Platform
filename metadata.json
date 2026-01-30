@@ -1,0 +1,7 @@
+{
+  "name": "Tour Operations Platform",
+  "description": "A high-performance DMC management system for tour operators in the UAE and Oman, featuring AI-powered itinerary parsing, automated resource library management, and intelligent booking alerts.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
