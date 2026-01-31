@@ -16,6 +16,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, language, setLanguage, currentUser, onSignOut }) => {
   const t = translations[language];
   
+  // 核心导航列表
   const menuItems = [
     { id: 'dashboard', label: t.nav.dashboard, icon: <ICONS.Dashboard /> },
     { id: 'itineraries', label: t.nav.itineraries, icon: <ICONS.Itinerary /> },
@@ -24,9 +25,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, language, se
     { id: 'resources', label: t.nav.resources, icon: <ICONS.Map /> },
   ];
 
-  if (currentUser?.role === UserRole.ADMIN) {
-    menuItems.push({ id: 'accounts', label: t.nav.accounts, icon: <ICONS.Resource /> });
-  }
+  // 角色权限守卫：仅 Admin 显示 Accounts 菜单
+  const filteredMenuItems = currentUser?.role === UserRole.ADMIN 
+    ? [...menuItems, { id: 'accounts', label: t.nav.accounts, icon: <ICONS.Resource /> }]
+    : menuItems;
 
   if (!currentUser) return null;
 
@@ -38,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, language, se
       </div>
       
       <nav className="flex-1 px-4 space-y-2 mt-6">
-        {menuItems.map((item) => (
+        {filteredMenuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
