@@ -11,12 +11,12 @@ export const translations = {
       calendar: 'Booking Calendar',
       resources: 'UAE/Oman Library',
       alerts: 'Booking Alerts',
-      accounts: 'Sub-Accounts',
+      accounts: 'Account Management',
     },
     phases: {
-      comingSoon: 'Coming Soon',
-      onGoing: 'On Going',
-      departure: 'Departure',
+      comingSoon: 'Coming Soon / 即将开始',
+      onGoing: 'On Going / 进行中',
+      departure: 'Departure / 已结束',
     },
     stats: {
       liveTours: 'Live Tours',
@@ -32,7 +32,7 @@ export const translations = {
       roleLabel: 'Access Level',
     },
     accounts: {
-      title: 'Account Management',
+      title: 'DMC Staff & Sub-Accounts',
       name: 'User Name',
       email: 'Email',
       status: 'Status',
@@ -41,6 +41,9 @@ export const translations = {
       trial: 'Trial',
       active: 'Active',
       noAccounts: 'No sub-accounts found.',
+      changePassword: 'Change Password',
+      adminBadge: 'System Admin',
+      staffBadge: 'Operation Staff',
     },
     permissions: {
       sectionTitle: 'Permission Settings',
@@ -152,7 +155,11 @@ export const translations = {
       endTime: 'End Time',
       notes: 'Operational Notes',
       notesPlaceholder: 'Bed configuration, dietary requirements, contact details...',
-      selectGroup: 'Select Tour Group'
+      selectGroup: 'Select Tour Group',
+      passwordTitle: 'Update System Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm New Password',
+      successPassword: 'Password updated successfully',
     },
     common: {
       operational: 'Operational',
@@ -175,12 +182,12 @@ export const translations = {
       calendar: '预订日历',
       resources: '资源库',
       alerts: '预订提醒',
-      accounts: '子账号管理',
+      accounts: '账号管理',
     },
     phases: {
-      comingSoon: '即将开始',
-      onGoing: '进行中',
-      departure: '已结束',
+      comingSoon: '即将开始 / Coming Soon',
+      onGoing: '进行中 / On Going',
+      departure: '已结束 / Departure',
     },
     stats: {
       liveTours: '进行中团队',
@@ -196,7 +203,7 @@ export const translations = {
       roleLabel: '访问权限',
     },
     accounts: {
-      title: '子账号管理',
+      title: '子账号与团队成员管理',
       name: '用户名',
       email: '邮箱',
       status: '状态',
@@ -205,6 +212,9 @@ export const translations = {
       trial: '试用',
       active: '正式',
       noAccounts: '未找到子账号。',
+      changePassword: '修改密码',
+      adminBadge: '超级管理员',
+      staffBadge: '运营成员',
     },
     permissions: {
       sectionTitle: '权限设置',
@@ -316,7 +326,11 @@ export const translations = {
       endTime: '结束时间',
       notes: '运营备注',
       notesPlaceholder: '床型配置、饮食要求、联系方式等...',
-      selectGroup: '选择团队'
+      selectGroup: '选择团队',
+      passwordTitle: '修改登录密码',
+      newPassword: '新密码',
+      confirmPassword: '确认新密码',
+      successPassword: '密码已成功更新',
     },
     common: {
       operational: '运行中',
