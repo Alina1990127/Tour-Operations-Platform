@@ -34,40 +34,50 @@ const BOOKING_TASK_SCHEMA = {
   required: ['groupName', 'startDate', 'endDate', 'tasks']
 };
 
-export const parseItinerary = async (text: string, fileData?: { data: string, mimeType: string }) => {
-  // Fix: Initialize GoogleGenAI inside the function to use the correct API key at call time.
+export const parseItinerary = async (text: string, visualAsset?: { data: string, mimeType: string }) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   try {
-    const parts: any[] = [{ text: `Parse the following DMC tour itinerary and extract structured booking tasks including estimated financial values. 
-      Location context: UAE and Oman.
-      Currency: AED.
-      Additional User Notes: ${text || "None"}` }];
+    const parts: any[] = [{ text: `You are an expert UAE and Oman DMC manager. Parse this itinerary data into a structured format. 
+      - Extract all services (Hotels, Vehicles, Guides, etc.).
+      - Estimate realistic local AED costs if missing.
+      - Return ONLY the JSON requested.
+      
+      Itinerary Content: ${text || "See attached visual."}` }];
 
-    if (fileData) {
+    if (visualAsset) {
       parts.push({
         inlineData: {
-          data: fileData.data,
-          mimeType: fileData.mimeType
+          data: visualAsset.data,
+          mimeType: visualAsset.mimeType
         }
       });
     }
 
-    // Use gemini-3-pro-preview for complex text tasks.
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: { parts },
       config: {
         responseMimeType: 'application/json',
         responseSchema: BOOKING_TASK_SCHEMA,
-        systemInstruction: "You are a senior DMC operations manager. Extract precise booking details and estimate costs based on local UAE/Oman market rates if not specified. Dates must be in YYYY-MM-DD format. Categorize items that don't fit standard types as 'Others'."
+        systemInstruction: "Strictly output valid JSON matching the provided schema. Do not include conversational text. For dates, use YYYY-MM-DD."
       }
     });
 
-    const responseText = response.text;
-    if (!responseText) throw new Error("No response from AI");
-    return JSON.parse(responseText.trim());
+    let jsonStr = response.text || "";
+    
+    // Safety check for markdown code blocks that sometimes persist despite responseMimeType
+    if (jsonStr.includes('```')) {
+      jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '');
+    }
+
+    if (!jsonStr.trim()) {
+      throw new Error("Empty response from AI engine.");
+    }
+
+    return JSON.parse(jsonStr.trim());
   } catch (error) {
-    console.error("AI Parsing Error:", error);
+    console.error("AI Operations Parsing Error:", error);
     throw error;
   }
 };
