@@ -36,4 +36,3 @@ export const supabase = supabaseReady
 if (!supabaseReady) {
   console.warn("DMC NEXUS: Supabase environment variables missing. Environment check failed.");
 }
-v
