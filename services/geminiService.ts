@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
+import type { ResourceType } from "../types";
 
 const BOOKING_TASK_SCHEMA = {
   type: Type.OBJECT,
@@ -8,7 +9,7 @@ const BOOKING_TASK_SCHEMA = {
     endDate: { type: Type.STRING, description: "End date (YYYY-MM-DD)" },
     paxCount: { type: Type.INTEGER, description: "Number of people" },
     guideLanguage: { type: Type.STRING, description: "Preferred guide language" },
-    estimatedIncome: { type: Type.NUMBER, description: "Total estimated revenue from this group (in AED)" },
+    estimatedIncome: { type: Type.NUMBER, description: "Total estimated revenue (AED)" },
     tasks: {
       type: Type.ARRAY,
       items: {
@@ -18,12 +19,12 @@ const BOOKING_TASK_SCHEMA = {
             type: Type.STRING,
             description: "One of: Hotel, Restaurant, Attraction, Vehicle, Guide, Others",
           },
-          description: { type: Type.STRING, description: "Details of the resource (e.g. Hotel name, Attraction name)" },
+          description: { type: Type.STRING, description: "Details of the resource" },
           date: { type: Type.STRING, description: "Date of service (YYYY-MM-DD)" },
           time: { type: Type.STRING, description: "Start time (HH:MM)" },
           endTime: { type: Type.STRING, description: "End time (HH:MM)" },
-          estimatedCost: { type: Type.NUMBER, description: "Estimated booking cost for this task (in AED)" },
-          notes: { type: Type.STRING, description: "Specific requirements (e.g. bed type, meal preference)" },
+          estimatedCost: { type: Type.NUMBER, description: "Estimated booking cost (AED)" },
+          notes: { type: Type.STRING, description: "Specific requirements" },
         },
         required: ["type", "description", "date"],
       },
@@ -32,83 +33,68 @@ const BOOKING_TASK_SCHEMA = {
   required: ["groupName", "startDate", "endDate", "tasks"],
 } as const;
 
-/**
- * Vite 前端项目：只能稳定从 import.meta.env 读取
- * 注意：变量名必须以 VITE_ 开头才会被注入到前端
- */
-function getEnv(key: string): string {
-  // 这里做一层保护，避免某些构建/测试环境报错
-  try {
-    const v = (import.meta as any)?.env?.[key];
-    return typeof v === "string" ? v : "";
-  } catch {
-    return "";
-  }
-}
+type VisualAsset = { data: string; mimeType: string };
 
-const apiKey = getEnv("VITE_API_KEY");
+const getGeminiKey = (): string => {
+  // ✅ 前端（Vite）正确读取方式：只会暴露 VITE_ 开头
+  const key = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
+  return (key || "").trim();
+};
 
-export const parseItinerary = async (
-  text: string,
-  visualAsset?: { data: string; mimeType: string }
-) => {
+export const parseItinerary = async (text: string, visualAsset?: VisualAsset) => {
+  const apiKey = getGeminiKey();
   if (!apiKey) {
-    // 这就是你现在最常见的“Parsing failed”的根因：key 在前端拿不到
     throw new Error(
-      "Missing VITE_API_KEY. Please set VITE_API_KEY in Vercel environment variables."
+      "Missing VITE_GEMINI_API_KEY. Please set it in Vercel Environment Variables and redeploy."
     );
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
-  try {
-    const parts: any[] = [
-      {
-        text: `You are an expert UAE and Oman DMC manager. Parse this itinerary data into a structured format.
-- Extract all services (Hotels, Vehicles, Guides, etc.).
-- Estimate realistic local AED costs if missing.
-- Return ONLY the JSON requested.
+  const parts: any[] = [
+    {
+      text:
+        `You are an expert UAE and Oman DMC operations manager. Parse itinerary data into a structured format.\n` +
+        `- Extract all services (Hotels, Vehicles, Guides, etc.).\n` +
+        `- Estimate realistic local AED costs if missing.\n` +
+        `- Return ONLY valid JSON matching the provided schema.\n\n` +
+        `Itinerary Content:\n${text || "See attached file."}`,
+    },
+  ];
 
-Itinerary Content:
-${text || "See attached file."}`,
+  if (visualAsset) {
+    parts.push({
+      inlineData: {
+        data: visualAsset.data,
+        mimeType: visualAsset.mimeType,
       },
-    ];
+    });
+  }
 
-    if (visualAsset?.data && visualAsset?.mimeType) {
-      parts.push({
-        inlineData: {
-          data: visualAsset.data,
-          mimeType: visualAsset.mimeType,
-        },
-      });
-    }
-
+  try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: { parts },
+      // ✅ 用官方可用模型名（别用 gemini-3-pro-preview 这种很可能不存在的）
+      model: "gemini-2.0-flash",
+      contents: [{ role: "user", parts }],
       config: {
         responseMimeType: "application/json",
         responseSchema: BOOKING_TASK_SCHEMA,
-        systemInstruction:
-          "Strictly output valid JSON matching the provided schema. Do not include conversational text. For dates, use YYYY-MM-DD.",
       },
     });
 
     let jsonStr = response.text || "";
 
-    // 有时仍会混入 ```json 代码块，做个清洗
+    // 有时仍会带 ```json
     if (jsonStr.includes("```")) {
       jsonStr = jsonStr.replace(/```json/g, "").replace(/```/g, "");
     }
 
-    if (!jsonStr.trim()) {
-      throw new Error("Empty response from AI engine.");
-    }
+    if (!jsonStr.trim()) throw new Error("Empty response from Gemini.");
 
     return JSON.parse(jsonStr.trim());
-  } catch (error: any) {
-    console.error("AI Operations Parsing Error:", error);
-    // 把更明确的信息抛出去，让 App.ts 的 alert 也更好排查
-    throw new Error(error?.message || "Gemini parsing failed.");
+  } catch (err: any) {
+    // 让你在 Vercel / 浏览器控制台看到真实错误原因
+    console.error("Gemini parse error:", err);
+    throw err;
   }
 };
