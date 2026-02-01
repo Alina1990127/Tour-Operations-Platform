@@ -4,6 +4,10 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
 
-  // 如果你前端确实要用 API key，请用 VITE_ 前缀
+  // 建议改成 VITE_API_KEY（Vite 只会把 VITE_ 前缀暴露给前端）
   readonly VITE_API_KEY?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
 }
